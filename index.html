@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<!--
+  index.html is the skeleton of the page.
+  The browser reads this first, then loads CSS (looks) and JS (behavior).
+
+  HTML syntax basics:
+    <tag> ... </tag>   an element with an opening and closing tag
+    <tag />            not used much in HTML5; void tags like <input> have no close
+    class="..."        a label CSS uses to style this element
+    id="..."           a unique name JavaScript uses to find this element
+    aria-*             extra hints for screen readers (accessibility)
+-->
+<html lang="en">
+  <head>
+    <!-- charset tells the browser how to decode text. UTF-8 supports all languages. -->
+    <meta charset="UTF-8" />
+
+    <!-- Makes the layout scale correctly on phones. Without this, mobile looks zoomed out. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>super-simpletasks</title>
+
+    <!-- Google Fonts: we request two typefaces. "@import" would also work in CSS. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- rel="stylesheet" means "this file is CSS". href is the path to the file. -->
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+
+  <body>
+    <!-- Decorative blurred color blobs. pointer-events: none in CSS so they never block clicks. -->
+    <div class="orbs" aria-hidden="true">
+      <div class="orb orb-a"></div>
+      <div class="orb orb-b"></div>
+      <div class="orb orb-c"></div>
+    </div>
+
+    <!-- <header> is a landmark: "this is the top bar of the app". -->
+    <header class="topbar glass">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div>
+          <h1>super-simpletasks</h1>
+          <p class="tagline">Todos & calendar · saved on this device</p>
+        </div>
+      </div>
+
+      <!-- type="search" gives the field a clear "x" on some browsers and better mobile keyboards. -->
+      <label class="search glass-inset">
+        <span class="sr-only">Search tasks</span>
+        <input id="search-input" type="search" placeholder="Search tasks..." autocomplete="off" />
+      </label>
+
+      <!-- type="button" is important: inside a form, a plain <button> would submit. We are not in a form here, but it is a good habit. -->
+      <button id="new-task-btn" class="btn-primary" type="button">+ New task</button>
+    </header>
+
+    <!-- The main two-column layout: sidebar calendar + the todo list. -->
+    <div class="shell">
+      <!-- <aside> = supporting column. On small screens CSS stacks it above the list. -->
+      <aside class="sidebar glass">
+        <section class="cal-wrap">
+          <div class="cal-header">
+            <button id="prev-month" class="icon-btn" type="button" aria-label="Previous month">‹</button>
+            <h2 id="cal-title">August 2026</h2>
+            <button id="next-month" class="icon-btn" type="button" aria-label="Next month">›</button>
+          </div>
+
+          <!-- Weekday labels. aria-hidden because the date buttons already name the day. -->
+          <div class="cal-weekdays" aria-hidden="true">
+            <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+          </div>
+
+          <!-- JavaScript will fill this grid with day buttons. -->
+          <div id="cal-grid" class="cal-grid"></div>
+        </section>
+
+        <section class="nav-views">
+          <button class="view-btn is-active" data-view="inbox" type="button">Inbox</button>
+          <button class="view-btn" data-view="today" type="button">Today</button>
+          <button class="view-btn" data-view="completed" type="button">Completed</button>
+        </section>
+
+        <section class="tags-panel">
+          <div class="tags-heading">
+            <h3>Tags</h3>
+          </div>
+          <div id="tag-list" class="tag-list"></div>
+
+          <!-- Creating a tag: name + color + add. -->
+          <form id="new-tag-form" class="new-tag-form">
+            <input id="new-tag-name" type="text" maxlength="24" placeholder="New tag" />
+            <input id="new-tag-color" type="color" value="#22d3ee" aria-label="Tag color" />
+            <button type="submit" class="icon-btn" aria-label="Add tag">+</button>
+          </form>
+        </section>
+      </aside>
+
+      <main class="main glass">
+        <div class="list-header">
+          <div>
+            <p class="eyebrow" id="list-eyebrow">Inbox</p>
+            <h2 id="list-title">All open tasks</h2>
+          </div>
+          <p class="count" id="list-count">0 tasks</p>
+        </div>
+
+        <!-- Priority chips. data-priority is read by JS. Empty string = all priorities. -->
+        <div class="priority-filters" role="tablist" aria-label="Filter by priority">
+          <button class="chip is-active" data-priority="" type="button">All</button>
+          <button class="chip chip-high" data-priority="high" type="button">High</button>
+          <button class="chip chip-med" data-priority="medium" type="button">Medium</button>
+          <button class="chip chip-low" data-priority="low" type="button">Low</button>
+        </div>
+
+        <!--
+          Inbox-only organizer. hidden is toggled in JS when you leave Inbox.
+          data-inbox-group / data-inbox-date / data-inbox-priority are read by app.js.
+        -->
+        <div id="inbox-organize" class="inbox-organize" hidden>
+          <div class="organize-row">
+            <span class="organize-label">Section by</span>
+            <button class="chip" type="button" data-inbox-group="date">Date</button>
+            <button class="chip" type="button" data-inbox-group="priority">Priority</button>
+            <button class="chip" type="button" data-inbox-group="both">Date &amp; priority</button>
+          </div>
+          <div class="organize-row">
+            <span class="organize-label">Sort dates</span>
+            <button class="chip" type="button" data-inbox-date="asc">Soonest first</button>
+            <button class="chip" type="button" data-inbox-date="desc">Latest first</button>
+          </div>
+          <div class="organize-row">
+            <span class="organize-label">Sort priority</span>
+            <button class="chip" type="button" data-inbox-priority="high">High first</button>
+            <button class="chip" type="button" data-inbox-priority="low">Low first</button>
+          </div>
+        </div>
+
+        <!-- The todo list. JS replaces the contents when state changes. -->
+        <ul id="task-list" class="task-list"></ul>
+      </main>
+    </div>
+
+    <!--
+      A modal is a floating panel that sits on top of the page.
+      hidden is a boolean HTML attribute: if it is present, the element is not shown.
+      JS will remove/add "hidden" when we open/close the editor.
+    -->
+    <div id="modal" class="modal" hidden>
+      <div class="modal-backdrop" data-close="true"></div>
+      <form id="task-form" class="modal-card glass">
+        <h2 id="modal-title">New task</h2>
+
+        <label class="field">
+          <span>Title</span>
+          <input id="field-title" name="title" type="text" required maxlength="120" placeholder="What needs doing?" />
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span>Date</span>
+            <input id="field-date" name="date" type="date" />
+          </label>
+          <label class="field">
+            <span>Start</span>
+            <input id="field-start" name="startTime" type="time" />
+          </label>
+          <label class="field">
+            <span>End</span>
+            <input id="field-end" name="endTime" type="time" />
+          </label>
+        </div>
+
+        <fieldset class="field">
+          <legend>Priority</legend>
+          <div class="priority-picks">
+            <label><input type="radio" name="priority" value="high" /> High</label>
+            <label><input type="radio" name="priority" value="medium" checked /> Medium</label>
+            <label><input type="radio" name="priority" value="low" /> Low</label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>Tags</legend>
+          <div id="modal-tags" class="modal-tags"></div>
+        </fieldset>
+
+        <div class="modal-actions">
+          <button id="delete-task-btn" class="btn-danger" type="button" hidden>Delete</button>
+          <span class="spacer"></span>
+          <button class="btn-ghost" type="button" data-close="true">Cancel</button>
+          <button class="btn-primary" type="submit">Save</button>
+        </div>
+      </form>
+    </div>
+
+    <!--
+      type="module" does two important things:
+        1. Lets us use import/export across JS files.
+        2. Automatically puts the script in strict mode and defers it until HTML is parsed.
+      Modules only load over http(s) or certain localhost servers — not always from a file:// double-click.
+    -->
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>
